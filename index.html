@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcit</title>
+<style>
+:root { --glow-color:#0ff; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#000,#111);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  height:100vh;
+  margin:0;
+}
+
+.app-frame {
+  border: 3px solid #0ff;
+  border-radius: 25px;
+  padding: 15px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 30px #0ff inset, 0 0 30px #0ff;
+  width: 100%;
+  max-width: 380px;
+  box-sizing: border-box;
+}
+
+.calculator { width: 100%; }
+
+#display {
+  width:100%;
+  height:60px;
+  font-size:1.8rem;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:12px;
+  background:#111;
+  font-weight:bold;
+  text-align:right;
+  box-sizing:border-box;
+  color:#fff;
+}
+
+.buttons {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+button {
+  padding:16px;
+  font-size:20px;
+  font-weight:bold;
+  border-radius:12px;
+  cursor:pointer;
+  box-sizing:border-box;
+  transition:all 0.3s ease;
+  background:#222;
+  color:#fff;
+  border:none;
+}
+
+button.pressed { transform:translateY(3px); filter:brightness(1.5); }
+button.backlit { margin:4px !important; }
+
+#controls {
+  display:flex;
+  flex-direction:row;
+  gap:6px;
+  margin-bottom:12px;
+  justify-content:space-between;
+}
+
+#backlitToggleBtn,#glowMode,#glowColor {
+  flex:1;
+  font-size:14px;
+  padding:8px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  background:#222;
+  color:#fff;
+}
+
+#backlitToggleBtn:hover,#glowMode:hover,#glowColor:hover { background:#333; }
+
+.glow-static {
+  color: var(--glow-color);
+  text-shadow:0 0 4px var(--glow-color),0 0 12px var(--glow-color),0 0 20px var(--glow-color);
+  box-shadow:0 0 12px var(--glow-color),0 0 24px var(--glow-color), inset 0 0 8px var(--glow-color);
+}
+.glow-rainbow { animation: neonCycle 6s infinite alternate; }
+.glow-pulse { animation: pulseGlow 3s infinite ease-in-out; }
+.glow-off { color:#ddd!important; text-shadow:none!important; box-shadow: inset 0 0 8px #000!important; animation:none!important; }
+
+@keyframes neonCycle {
+  0%,100%{ color:#0ff; text-shadow:0 0 4px #0ff,0 0 12px #0ff,0 0 20px #0ff; box-shadow:0 0 12px #0ff,0 0 24px #0ff,inset 0 0 8px #0ff;}
+  25%{ color:#f0f; text-shadow:0 0 4px #f0f,0 0 12px #f0f,0 0 20px #f0f; box-shadow:0 0 12px #f0f,0 0 24px #f0f,inset 0 0 8px #f0f;}
+  50%{ color:#0f0; text-shadow:0 0 4px #0f0,0 0 12px #0f0,0 0 20px #0f0; box-shadow:0 0 12px #0f0,0 0 24px #0f0,inset 0 0 8px #0f0;}
+  75%{ color:#ff0; text-shadow:0 0 4px #ff0,0 0 12px #ff0,0 0 20px #ff0; box-shadow:0 0 12px #ff0,0 0 24px #ff0,inset 0 0 8px #ff0;}
+}
+
+@keyframes pulseGlow {
+  0%,100%{ color: var(--glow-color); text-shadow:0 0 4px var(--glow-color),0 0 12px var(--glow-color),0 0 20px var(--glow-color); box-shadow:0 0 10px var(--glow-color),0 0 20px var(--glow-color), inset 0 0 8px var(--glow-color);}
+  50%{ color: var(--glow-color); text-shadow:0 0 16px var(--glow-color),0 0 32px var(--glow-color),0 0 48px var(--glow-color); box-shadow:0 0 24px var(--glow-color),0 0 48px var(--glow-color), inset 0 0 16px var(--glow-color);}
+}
+
+@media (max-width:480px){
+  .app-frame{max-width:95%;padding:10px;}
+  #display{font-size:1.6rem;height:50px;padding:8px;}
+  .buttons button{font-size:18px;padding:14px;}
+  #controls{gap:4px;}
+  #backlitToggleBtn,#glowMode,#glowColor{font-size:13px;padding:6px;}
+  button.backlit{margin:6px!important;}
+}
+
+footer {
+  margin-top:15px;
+  color:#0ff;
+  font-size:14px;
+  text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div class="app-frame">
+  <div class="calculator">
+    <input type="text" id="display" readonly>
+    <div id="controls">
+      <button id="backlitToggleBtn" onclick="toggleBacklit()">Backlit: ON</button>
+      <select id="glowMode" onchange="setGlowMode(this.value)">
+        <option value="static">Static Glow</option>
+        <option value="rainbow">Rainbow Cycle</option>
+        <option value="pulse">Pulse</option>
+        <option value="off">Off</option>
+      </select>
+      <input type="color" id="glowColor" value="#00ffff" onchange="setCustomGlowColor(this.value)">
+    </div>
+    <div class="buttons">
+      <button onclick="clearDisplay(this)">C</button>
+      <button onclick="backspace(this)">⌫</button>
+      <button onclick="negate(this)">±</button>
+      <button onclick="appendValue('/',this)">÷</button>
+      <button onclick="appendValue('7',this)">7</button>
+      <button onclick="appendValue('8',this)">8</button>
+      <button onclick="appendValue('9',this)">9</button>
+      <button onclick="appendValue('*',this)">×</button>
+      <button onclick="appendValue('4',this)">4</button>
+      <button onclick="appendValue('5',this)">5</button>
+      <button onclick="appendValue('6',this)">6</button>
+      <button onclick="appendValue('-',this)">−</button>
+      <button onclick="appendValue('1',this)">1</button>
+      <button onclick="appendValue('2',this)">2</button>
+      <button onclick="appendValue('3',this)">3</button>
+      <button onclick="appendValue('+',this)">+</button>
+      <button onclick="appendValue('%',this)">%</button>
+      <button onclick="appendValue('0',this)">0</button>
+      <button onclick="appendValue('.',this)">.</button>
+      <button onclick="calculate(this)">=</button>
+      <button onclick="square(this)">x²</button>
+      <button onclick="squareRoot(this)">√</button>
+    </div>
+  </div>
+</div>
+
+<footer>© Manik Roy 2025</footer>
+
+<script>
+let display=document.getElementById('display');
+let backlitOn=true;
+
+function buttonFeedback(button,duration=100){
+  if(button){button.classList.add("pressed");setTimeout(()=>button.classList.remove("pressed"),duration);}
+  if(navigator.vibrate) navigator.vibrate(20);
+}
+
+function appendValue(val,button=null){buttonFeedback(button,50);display.value+=val;}
+function clearDisplay(button=null){buttonFeedback(button,50);display.value='';}
+function backspace(button=null){buttonFeedback(button,50);display.value=display.value.slice(0,-1);}
+function negate(button=null){buttonFeedback(button,50);if(display.value){display.value=display.value[0]==='-'?display.value.slice(1):'-'+display.value;}}
+function square(button=null){buttonFeedback(button,50);try{display.value=eval(display.value)**2;}catch{display.value='Error';}}
+function squareRoot(button=null){buttonFeedback(button,50);try{display.value=Math.sqrt(eval(display.value));}catch{display.value='Error';}}
+function calculate(button=null){buttonFeedback(button,100);try{display.value=eval(display.value.replace('%','/100'));}catch{display.value='Error';}}
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key>='0'&&e.key<='9') appendValue(e.key);
+  if(['+','-','*','/'].includes(e.key)) appendValue(e.key);
+  if(e.key==='Enter') calculate();
+  if(e.key==='Backspace') backspace();
+  if(e.key=='.') appendValue('.');
+  if(e.key.toLowerCase()==='c') clearDisplay();
+});
+
+function toggleBacklit(){
+  backlitOn=!backlitOn;
+  const btn=document.getElementById('backlitToggleBtn');
+  const allButtons=document.querySelectorAll('.buttons button');
+  const displayEl=document.getElementById('display');
+  allButtons.forEach(b=>{if(backlitOn){b.classList.remove('glow-off');b.classList.add('backlit');}else{b.classList.add('glow-off');b.classList.remove('backlit');}});
+  if(backlitOn){displayEl.classList.remove('glow-off');displayEl.classList.add('backlit');btn.classList.remove('glow-off');btn.classList.add('backlit');}
+  else{displayEl.classList.add('glow-off');displayEl.classList.remove('backlit');btn.classList.add('glow-off');btn.classList.remove('backlit');}
+  btn.textContent="Backlit: "+(backlitOn?"ON":"OFF");
+}
+
+function setGlowMode(mode){
+  const elements=document.querySelectorAll('.buttons button,#display,#backlitToggleBtn');
+  elements.forEach(el=>el.classList.remove('glow-static','glow-rainbow','glow-pulse','glow-off'));
+  if(!backlitOn){elements.forEach(el=>el.classList.add('glow-off'));return;}
+  if(mode==='static') elements.forEach(el=>el.classList.add('glow-static'));
+  else if(mode==='rainbow') elements.forEach(el=>el.classList.add('glow-rainbow'));
+  else if(mode==='pulse') elements.forEach(el=>el.classList.add('glow-pulse'));
+  else if(mode==='off') elements.forEach(el=>el.classList.add('glow-off'));
+}
+
+function setCustomGlowColor(color){
+  document.documentElement.style.setProperty('--glow-color',color);
+  const mode=document.getElementById('glowMode').value;
+  if(mode==='static'||mode==='pulse') setGlowMode(mode);
+}
+
+document.querySelectorAll('.buttons button').forEach(b => b.classList.add('glow-static', 'backlit'));
+document.getElementById('display').classList.add('glow-static', 'backlit');
+document.getElementById('backlitToggleBtn').classList.add('glow-static', 'backlit');
+</script>
+
+</body>
+</html>
